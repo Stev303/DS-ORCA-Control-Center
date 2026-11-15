@@ -4,12 +4,15 @@
 - [x] Native Windows x64 app shell
 - [x] Enumerate playback and capture endpoints
 - [x] Automated Windows build
-- [ ] Verify artifact on a Windows 11 PC
+- [x] Windows x64 Release artifact generated
 
-## Milestone 0.2 — Device identification
-- [ ] Match DS ORCA using USB VID 320C / PID 1B0A
-- [ ] Show selected capture and playback endpoints
-- [ ] Detect device arrival/removal
+## Milestone 0.2 — Endpoint control dashboard
+- [x] List active playback and recording endpoints
+- [x] Select input and output endpoints
+- [x] Change Windows endpoint input/output master volume
+- [x] Mute and unmute Windows input/output endpoints
+- [ ] Match DS ORCA by USB VID 320C / PID 1B0A rather than friendly name alone
+- [ ] Detect device arrival/removal and refresh automatically
 
 ## Milestone 0.3 — WASAPI audio engine
 - [ ] Shared-mode capture and playback streams
@@ -29,7 +32,7 @@
 ## Milestone 0.5 — ASIO x64 driver
 - [ ] Integrate Steinberg ASIO SDK under GPLv3-compatible file terms
 - [ ] Implement ASIO COM driver and registration/unregistration
-- [ ] Bind ASIO input/output channels to actual DS ORCA WASAPI endpoints
+- [ ] Bind ASIO input/output channels to actual DS ORCA audio endpoints
 - [ ] Implement sample-rate and buffer negotiation
 - [ ] Validate in Studio One and FL Studio
 - [ ] Measure underruns, latency and stability
@@ -49,4 +52,4 @@
 
 ## Release gate
 
-Do not label a build production-ready until real DS ORCA MK2 hardware has been tested for playback, capture, device reconnect, sample-rate changes and Studio One / FL Studio operation. The current 0.1.0 endpoint browser is not an ASIO driver and must not be advertised as one.
+Do not label a build production-ready until real DS ORCA MK2 hardware has been tested for playback, capture, device reconnect, sample-rate changes and Studio One / FL Studio operation. Version 0.2.0 is an endpoint control dashboard, not an ASIO driver or full mixer.
