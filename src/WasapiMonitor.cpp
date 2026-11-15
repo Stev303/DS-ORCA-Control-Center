@@ -7,6 +7,7 @@
 #include <wrl/client.h>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <cstdint>
 #include <vector>
 
