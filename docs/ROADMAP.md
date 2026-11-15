@@ -14,30 +14,39 @@
 - [ ] Match DS ORCA by USB VID 320C / PID 1B0A rather than friendly name alone
 - [ ] Detect device arrival/removal and refresh automatically
 
-## Milestone 0.3 — WASAPI audio engine
-- [ ] Shared-mode capture and playback streams
-- [ ] Negotiate endpoint mix formats safely
-- [ ] Event-driven buffering and recovery after device removal
+## Milestone 0.3 — WASAPI monitor (working baseline)
+- [x] Shared-mode capture and playback streams
+- [x] Negotiate endpoint mix formats
+- [x] Event-driven capture and render
+- [x] User-selectable requested buffer duration: 10 / 20 / 40 / 80 ms
+- [x] Confirm all four buffer choices start on the user's DS ORCA hardware
+- [ ] Automatic recovery after device removal
 - [ ] Loopback capture
 - [ ] Input/output peak meters and clipping indication
+- [ ] Long-duration stability and drift testing
 
 ## Milestone 0.4 — Software mixer and routing
-- [ ] Input and playback channel strips
-- [ ] Per-channel gain, mute and monitor
-- [ ] Master output level
-- [ ] Routing matrix
+- [x] Stereo mixer DSP core for up to eight strips
+- [x] Per-strip gain, pan/balance, mute and solo in the DSP core
+- [x] Master gain in the DSP core
+- [ ] Connect mixer DSP to live WASAPI streams
+- [ ] Add real-time-safe parameter exchange
+- [ ] Add input/output peak meters
+- [ ] Add routing matrix and feedback protection
 - [ ] Save/load presets
-- [ ] Verify no unintended feedback paths
 
-## Milestone 0.5 — ASIO x64 driver
-- [ ] Integrate Steinberg ASIO SDK under GPLv3-compatible file terms
-- [ ] Implement ASIO COM driver and registration/unregistration
-- [ ] Bind ASIO input/output channels to actual DS ORCA audio endpoints
-- [ ] Implement sample-rate and buffer negotiation
-- [ ] Validate in Studio One and FL Studio
-- [ ] Measure underruns, latency and stability
+## Milestone 0.5 — Native ASIO x64 driver
+- [ ] Obtain and pin the official Steinberg ASIO SDK release under GPLv3
+- [ ] Verify SDK file-level license notices before integration
+- [ ] Implement ASIO COM driver DLL, class factory and registration/unregistration
+- [ ] Implement hardware-backed capture and playback
+- [ ] Negotiate sample rates, channel layout and ASIO buffer sizes
+- [ ] Report measured/defensible input and output latency
+- [ ] Handle device removal, stream errors and clean shutdown
+- [ ] Validate in Studio One and FL Studio using the physical DS ORCA
 
 ## Milestone 0.6 — Optional virtual audio endpoint
+- [ ] Decide whether a virtual endpoint is actually needed
 - [ ] Select architecture and supported Windows versions
 - [ ] WDK build and test-signing process
 - [ ] Install/uninstall and device recovery tests
@@ -48,8 +57,8 @@
 - [ ] Provide clean uninstall and rollback
 - [ ] Verify install on Windows 10 and Windows 11
 - [ ] Verify playback, capture, reconnect, sample rates and DAW operation
-- [ ] Publish checksums and complete corresponding source when conveying binaries
+- [ ] Publish checksums and corresponding source for distributed binaries
 
 ## Release gate
 
-Do not label a build production-ready until real DS ORCA MK2 hardware has been tested for playback, capture, device reconnect, sample-rate changes and Studio One / FL Studio operation. Version 0.2.0 is an endpoint control dashboard, not an ASIO driver or full mixer.
+The current WASAPI monitor is a working baseline, not an ASIO driver. Do not label a build production-ready until real DS ORCA MK2 hardware has been tested for playback, capture, reconnect, sample-rate changes, sustained operation and Studio One / FL Studio operation.
