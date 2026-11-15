@@ -131,7 +131,7 @@ void ToggleMute(bool input) {
 
 LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
-    case WM_CREATE:
+    case WM_CREATE: {
         CreateWindowW(L"STATIC", L"DS ORCA | CONTROL CENTER", WS_CHILD | WS_VISIBLE, 24, 16, 620, 30, window, nullptr, nullptr, nullptr);
         CreateWindowW(L"BUTTON", L"Refresh devices", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 24, 54, 150, 30, window, reinterpret_cast<HMENU>(static_cast<INT_PTR>(kRefreshButton)), nullptr, nullptr);
 
@@ -160,6 +160,7 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lPa
         SetTimer(window, 1, 250, nullptr);
         RefreshDevices();
         return 0;
+    }
 
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
@@ -171,7 +172,6 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lPa
             const auto* out = SelectedEndpoint(g_outputCombo, g_outputs);
             if (!in || !out) SetStatus(L"Select an active recording input and playback output first.");
             else { const LRESULT selected = SendMessageW(g_bufferCombo, CB_GETCURSEL, 0, 0); const unsigned int bufferMs = selected == CB_ERR ? 20u : static_cast<unsigned int>(SendMessageW(g_bufferCombo, CB_GETITEMDATA, selected, 0)); if (!g_monitor.Start(in->id, out->id, bufferMs)) SetStatus(L"Monitor is already running or starting."); else SetStatus(L"Starting WASAPI monitor with " + std::to_wstring(bufferMs) + L" ms buffer..."); }
-            else SetStatus(L"Starting WASAPI monitor...");
             return 0;
         }
         case kStopMonitor: g_monitor.Stop(); SetStatus(L"Audio monitor stopped."); return 0;
