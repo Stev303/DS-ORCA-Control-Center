@@ -1,30 +1,51 @@
 # DS ORCA Control Center
 
-A Windows 10/11 x64 control application for the DS ORCA MK2 USB audio device.
+A Windows 10/11 x64 control application and audio-engine project for the DS ORCA MK2 USB audio device.
 
 ## License
 
-The original DS ORCA Control Center project source is licensed under GNU GPL version 3. See [COPYING](COPYING).
+The project source is licensed under GNU GPL version 3. See [COPYING](COPYING).
 
-The Steinberg ASIO SDK is a separate third-party component and is not bundled here. The project plans to use the SDK's GPLv3 alternative; preserve all SDK-specific notices and check file-level licensing before integrating SDK files. See [Third-party notices](docs/THIRD_PARTY_NOTICES.md).
+The intended ASIO integration uses Steinberg's GPLv3 open-source alternative. Obtain the current SDK from the [official ASIO SDK page](https://www.steinberg.net/asiosdk). The SDK is not bundled in this repository. Preserve its file-level license notices. See [Third-party notices](docs/THIRD_PARTY_NOTICES.md).
 
-## Current status — 0.3.0
+## Current status
 
-Implemented:
+### Implemented and built
 - Native Windows desktop application.
-- Windows Core Audio playback and recording endpoint enumeration.
-- Active input and output endpoint selection.
-- Input endpoint master volume and mute controls.
-- Playback endpoint master volume and mute controls.
-- A stereo DSP mixer core for up to eight input strips.
-- Per-strip gain, pan/balance, mute and solo.
-- Master gain and per-strip/master peak meters.
-- No per-call heap allocation in the mixer processing function.
+- Windows Core Audio playback and recording endpoint enumeration and selection.
+- Windows endpoint master volume and mute controls.
+- Stereo DSP mixer core for up to eight input strips, with gain, pan/balance, mute, solo and master gain.
+- Event-driven WASAPI capture-to-playback monitor.
+- Selectable requested shared-mode buffer duration: 10, 20, 40 and 80 ms.
 - Automated Windows x64 Release build and mixer-core tests.
 
-The mixer core is not yet connected to live WASAPI device streams. The current desktop controls still operate on Windows Core Audio endpoint volume/mute. They do not yet control undocumented DSP inside DS ORCA hardware.
+### Confirmed on the user's DS ORCA hardware
+- The WASAPI input monitor produces audible microphone-to-headphone output.
+- The user tested all four buffer selections and confirmed they all start and work.
+- The user reported that latency improved after reducing the WASAPI buffer.
 
-**Not implemented yet:** live WASAPI capture/playback engine, UI faders connected to the DSP core, ASIO driver, virtual audio endpoint, DAW integration and installer.
+### Current limitations
+- The WASAPI monitor is a basic input-to-output monitor, not a complete DAW audio engine.
+- The buffer dropdown sets the requested shared-mode WASAPI buffer duration. It does not guarantee the same end-to-end hardware latency.
+- The mixer DSP core is not yet connected to the live WASAPI stream; current endpoint sliders control Windows endpoint volume/mute.
+- Input and output streams currently require matching sample rates.
+- No ASIO driver is implemented or included yet. Studio One and FL Studio will not see this app as a dedicated DS ORCA ASIO device.
+- No virtual audio endpoint driver or installer is implemented.
+- The app does not yet control undocumented DS ORCA hardware DSP.
+
+## Next engineering milestone: native ASIO driver
+
+The next milestone is a real 64-bit ASIO COM driver DLL, built against the official Steinberg ASIO SDK under GPLv3. It must:
+1. Implement the ASIO COM driver interface and safe registration/unregistration.
+2. Open the actual DS ORCA capture and playback endpoints, identified by USB VID 320C / PID 1B0A plus endpoint identity.
+3. Provide correct channel information, supported sample rates, buffer-size negotiation, sample position and latency reporting.
+4. Move audio between ASIO double buffers and the hardware backend without allocations or blocking work in the real-time callback.
+5. Handle device removal, format changes, start/stop and error recovery.
+6. Be tested in Studio One and FL Studio on the physical DS ORCA hardware.
+
+The first backend candidate is Windows audio in exclusive mode, subject to hardware/driver support testing. The current shared-mode WASAPI monitor is a working fallback and must remain available. An ASIO buffer setting must not be presented as true hardware latency until measured.
+
+See [ASIO driver design](docs/ASIO_DRIVER_DESIGN.md) and [engineering roadmap](docs/ROADMAP.md).
 
 ## Build and tests
 
@@ -44,14 +65,14 @@ ctest --test-dir build -C Release --output-on-failure
 
 ## Hardware compatibility
 
-The application uses the Microsoft USB Audio class driver already installed by Windows. It must not replace the DS ORCA device driver.
+The application uses the Microsoft USB Audio class driver already installed by Windows. It must not replace the DS ORCA USB device driver.
 
 Known DS ORCA USB identity: VID 320C, PID 1B0A. Match by USB identity and endpoint information rather than assuming every device named HD USB Audio Device is DS ORCA.
 
 The supplied USB descriptors show a USB Audio Class 1 device with standard mute/volume controls and a vendor extension whose behavior is not yet verified. A software mixer UI does not automatically control hardware DSP.
 
-A production ASIO driver must expose real input/output buffers backed by the DS ORCA audio endpoints. A virtual audio driver is a separate Windows driver project requiring WDK build, signing and installation tests.
+A virtual audio endpoint is a separate Windows driver project requiring WDK build, signing and installation tests.
 
 ## Validation gate
 
-Do not label a build production-ready until real DS ORCA MK2 hardware has been tested for playback, capture, device reconnect, sample-rate changes and Studio One / FL Studio operation.
+Do not label a build production-ready until real DS ORCA MK2 hardware has been tested for playback, capture, reconnect, sample-rate changes, sustained operation and Studio One / FL Studio operation.
