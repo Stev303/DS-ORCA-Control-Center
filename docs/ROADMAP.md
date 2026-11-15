@@ -36,8 +36,8 @@
 - [ ] Save/load presets
 
 ## Milestone 0.5 — Native ASIO x64 driver
-- [ ] Obtain and pin the official Steinberg ASIO SDK release under GPLv3
-- [ ] Verify SDK file-level license notices before integration
+- [x] Obtain and pin official Steinberg ASIO SDK 2.3.4 (2025-10-15); GPLv3 option confirmed in SDK LICENSE.txt
+- [x] Audit SDK notices: common ASIO interface headers refer to the SDK GPLv3 option; sample driver files carry separate BSD-style notices and are not being copied as implementation
 - [ ] Implement ASIO COM driver DLL, class factory and registration/unregistration
 - [ ] Implement hardware-backed capture and playback
 - [ ] Negotiate sample rates, channel layout and ASIO buffer sizes
