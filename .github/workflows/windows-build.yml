@@ -12,9 +12,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Configure
-        run: cmake -S . -B build -A x64
+        run: cmake -S . -B build -A x64 -DBUILD_TESTING=ON
       - name: Build
         run: cmake --build build --config Release --parallel
+      - name: Test mixer core
+        run: ctest --test-dir build -C Release --output-on-failure
       - name: Upload application artifact
         uses: actions/upload-artifact@v4
         with:

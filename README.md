@@ -8,19 +8,33 @@ The original DS ORCA Control Center project source is licensed under GNU GPL ver
 
 The Steinberg ASIO SDK is a separate third-party component and is not bundled here. The project plans to use the SDK's GPLv3 alternative; preserve all SDK-specific notices and check file-level licensing before integrating SDK files. See [Third-party notices](docs/THIRD_PARTY_NOTICES.md).
 
-## Current status — 0.2.0
+## Current status — 0.3.0
 
-Implemented and built:
+Implemented:
 - Native Windows desktop application.
 - Windows Core Audio playback and recording endpoint enumeration.
 - Active input and output endpoint selection.
 - Input endpoint master volume and mute controls.
 - Playback endpoint master volume and mute controls.
-- Automated Windows x64 Release build.
+- A stereo DSP mixer core for up to eight input strips.
+- Per-strip gain, pan/balance, mute and solo.
+- Master gain and per-strip/master peak meters.
+- No per-call heap allocation in the mixer processing function.
+- Automated Windows x64 Release build and mixer-core tests.
 
-The volume and mute controls operate on Windows Core Audio endpoint controls. They do not yet control undocumented DSP inside the DS ORCA hardware and do not constitute a multi-bus software mixer.
+The mixer core is not yet connected to live WASAPI device streams. The current desktop controls still operate on Windows Core Audio endpoint volume/mute. They do not yet control undocumented DSP inside DS ORCA hardware.
 
-**Not implemented yet:** WASAPI audio streaming/mixing, ASIO driver, virtual audio endpoint, DAW integration and installer.
+**Not implemented yet:** live WASAPI capture/playback engine, UI faders connected to the DSP core, ASIO driver, virtual audio endpoint, DAW integration and installer.
+
+## Build and tests
+
+Windows 10/11 x64 with Visual Studio 2022 or later and CMake 3.24+:
+
+```powershell
+cmake -S . -B build -A x64 -DBUILD_TESTING=ON
+cmake --build build --config Release --parallel
+ctest --test-dir build -C Release --output-on-failure
+```
 
 ## Download the latest build
 

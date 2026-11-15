@@ -1,25 +1,26 @@
 cmake_minimum_required(VERSION 3.24)
-project(DSOrcaControlCenter VERSION 0.2.0 LANGUAGES CXX)
-
+project(DSOrcaControlCenter VERSION 0.3.0 LANGUAGES CXX)
 if(NOT WIN32)
   message(FATAL_ERROR "DS ORCA Control Center currently targets Windows 10/11.")
 endif()
-
-add_executable(DSOrcaControlCenter WIN32
-  src/main.cpp
-  src/AudioDevices.cpp
-)
-
+add_library(DSOrcaMixerCore STATIC src/MixerEngine.cpp)
+target_compile_features(DSOrcaMixerCore PUBLIC cxx_std_17)
+target_include_directories(DSOrcaMixerCore PUBLIC src)
+add_executable(DSOrcaControlCenter WIN32 src/main.cpp src/AudioDevices.cpp)
 target_compile_features(DSOrcaControlCenter PRIVATE cxx_std_17)
 target_compile_definitions(DSOrcaControlCenter PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_include_directories(DSOrcaControlCenter PRIVATE src)
-target_link_libraries(DSOrcaControlCenter PRIVATE ole32 propsys uuid comctl32)
-
+target_link_libraries(DSOrcaControlCenter PRIVATE DSOrcaMixerCore ole32 propsys uuid comctl32)
 if(MSVC)
   target_compile_options(DSOrcaControlCenter PRIVATE /W4 /permissive- /EHsc)
+  target_compile_options(DSOrcaMixerCore PRIVATE /W4 /permissive- /EHsc)
   set_property(TARGET DSOrcaControlCenter PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  set_property(TARGET DSOrcaMixerCore PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
-
-set_target_properties(DSOrcaControlCenter PROPERTIES
-  OUTPUT_NAME "DS ORCA Control Center"
-)
+set_target_properties(DSOrcaControlCenter PROPERTIES OUTPUT_NAME "DS ORCA Control Center")
+include(CTest)
+if(BUILD_TESTING)
+  add_executable(MixerEngineTests tests/MixerEngineTests.cpp)
+  target_link_libraries(MixerEngineTests PRIVATE DSOrcaMixerCore)
+  add_test(NAME MixerEngineTests COMMAND MixerEngineTests)
+endif()
