@@ -1,10 +1,13 @@
 #include "AudioDevices.h"
 #include <windows.h>
 #include <mmdeviceapi.h>
+#include <endpointvolume.h>
 #include <functiondiscoverykeys_devpkey.h>
 #include <propvarutil.h>
 #include <wrl/client.h>
+
 using Microsoft::WRL::ComPtr;
+
 namespace {
 std::wstring ReadState(DWORD state) {
     if (state & DEVICE_STATE_ACTIVE) return L"Active";
@@ -13,6 +16,7 @@ std::wstring ReadState(DWORD state) {
     if (state & DEVICE_STATE_UNPLUGGED) return L"Unplugged";
     return L"Unknown";
 }
+
 std::wstring ReadFriendlyName(IMMDevice* device) {
     ComPtr<IPropertyStore> properties;
     if (FAILED(device->OpenPropertyStore(STGM_READ, &properties))) return L"(Unknown audio device)";
@@ -24,11 +28,24 @@ std::wstring ReadFriendlyName(IMMDevice* device) {
     PropVariantClear(&value);
     return result;
 }
+
+bool OpenEndpointVolume(const std::wstring& endpointId, ComPtr<IAudioEndpointVolume>& volume) {
+    if (endpointId.empty()) return false;
+    ComPtr<IMMDeviceEnumerator> enumerator;
+    if (FAILED(CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
+                                IID_PPV_ARGS(&enumerator)))) return false;
+    ComPtr<IMMDevice> device;
+    if (FAILED(enumerator->GetDevice(endpointId.c_str(), &device))) return false;
+    return SUCCEEDED(device->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL,
+                                      nullptr, reinterpret_cast<void**>(volume.GetAddressOf())));
 }
+}
+
 std::vector<AudioEndpoint> EnumerateAudioEndpoints() {
     std::vector<AudioEndpoint> endpoints;
     ComPtr<IMMDeviceEnumerator> enumerator;
-    if (FAILED(CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator)))) return endpoints;
+    if (FAILED(CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
+                                IID_PPV_ARGS(&enumerator)))) return endpoints;
     const EDataFlow flows[] = { eRender, eCapture };
     const wchar_t* labels[] = { L"Playback", L"Recording" };
     for (int index = 0; index < 2; ++index) {
@@ -51,4 +68,32 @@ std::vector<AudioEndpoint> EnumerateAudioEndpoints() {
         }
     }
     return endpoints;
+}
+
+bool GetEndpointVolume(const std::wstring& endpointId, float& level) {
+    ComPtr<IAudioEndpointVolume> volume;
+    return OpenEndpointVolume(endpointId, volume) &&
+           SUCCEEDED(volume->GetMasterVolumeLevelScalar(&level));
+}
+
+bool SetEndpointVolume(const std::wstring& endpointId, float level) {
+    ComPtr<IAudioEndpointVolume> volume;
+    if (!OpenEndpointVolume(endpointId, volume)) return false;
+    if (level < 0.0f) level = 0.0f;
+    if (level > 1.0f) level = 1.0f;
+    return SUCCEEDED(volume->SetMasterVolumeLevelScalar(level, nullptr));
+}
+
+bool GetEndpointMute(const std::wstring& endpointId, bool& muted) {
+    ComPtr<IAudioEndpointVolume> volume;
+    BOOL value = FALSE;
+    if (!OpenEndpointVolume(endpointId, volume) || FAILED(volume->GetMute(&value))) return false;
+    muted = value != FALSE;
+    return true;
+}
+
+bool SetEndpointMute(const std::wstring& endpointId, bool muted) {
+    ComPtr<IAudioEndpointVolume> volume;
+    return OpenEndpointVolume(endpointId, volume) &&
+           SUCCEEDED(volume->SetMute(muted ? TRUE : FALSE, nullptr));
 }
