@@ -57,7 +57,7 @@ void WriteSample(BYTE* p, const WAVEFORMATEX* f, float x) {
     memcpy(p, &v, sizeof(v));
 }
 bool OpenClient(const std::wstring& id, EDataFlow flow, ComPtr<IAudioClient>& client,
-                WAVEFORMATEX*& format, HANDLE& eventHandle, ComPtr<IMMDevice>& device) {
+                WAVEFORMATEX*& format, HANDLE& eventHandle, ComPtr<IMMDevice>& device, unsigned int bufferMs) {
     ComPtr<IMMDeviceEnumerator> enumerator;
     if (FAILED(CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator)))) return false;
     if (FAILED(enumerator->GetDevice(id.c_str(), &device))) return false;
@@ -67,7 +67,7 @@ bool OpenClient(const std::wstring& id, EDataFlow flow, ComPtr<IAudioClient>& cl
     if (!eventHandle) return false;
     const HRESULT hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED,
         AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST,
-        200000, 0, format, nullptr);
+        static_cast<REFERENCE_TIME>(bufferMs) * 10000, 0, format, nullptr);
     if (FAILED(hr) || FAILED(client->SetEventHandle(eventHandle))) return false;
     return true;
 }
@@ -75,12 +75,12 @@ bool OpenClient(const std::wstring& id, EDataFlow flow, ComPtr<IAudioClient>& cl
 
 WasapiMonitor::~WasapiMonitor() { Stop(); }
 
-bool WasapiMonitor::Start(const std::wstring& captureId, const std::wstring& renderId) {
+bool WasapiMonitor::Start(const std::wstring& captureId, const std::wstring& renderId, unsigned int bufferMs) {
     if (captureId.empty() || renderId.empty() || status_.load() == 1 || status_.load() == 2) return false;
     if (worker_.joinable()) worker_.join();
     stop_.store(false);
     status_.store(1);
-    worker_ = std::thread(&WasapiMonitor::Run, this, captureId, renderId);
+    worker_ = std::thread(&WasapiMonitor::Run, this, captureId, renderId, bufferMs);
     return true;
 }
 void WasapiMonitor::Stop() {
@@ -89,7 +89,7 @@ void WasapiMonitor::Stop() {
     status_.store(0);
 }
 
-void WasapiMonitor::Run(std::wstring captureId, std::wstring renderId) {
+void WasapiMonitor::Run(std::wstring captureId, std::wstring renderId, unsigned int bufferMs) {
     const HRESULT com = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     if (FAILED(com) && com != RPC_E_CHANGED_MODE) { status_.store(3); return; }
 
@@ -109,8 +109,8 @@ void WasapiMonitor::Run(std::wstring captureId, std::wstring renderId) {
         if (SUCCEEDED(com)) CoUninitialize();
     };
 
-    if (!OpenClient(captureId, eCapture, captureClient, captureFormat, captureEvent, captureDevice) ||
-        !OpenClient(renderId, eRender, renderClient, renderFormat, renderEvent, renderDevice) ||
+    if (!OpenClient(captureId, eCapture, captureClient, captureFormat, captureEvent, captureDevice, bufferMs) ||
+        !OpenClient(renderId, eRender, renderClient, renderFormat, renderEvent, renderDevice, bufferMs) ||
         captureFormat->nSamplesPerSec != renderFormat->nSamplesPerSec ||
         FAILED(captureClient->GetService(IID_PPV_ARGS(&capture))) ||
         FAILED(renderClient->GetService(IID_PPV_ARGS(&render)))) {
