@@ -67,7 +67,7 @@ bool OpenClient(const std::wstring& id, EDataFlow flow, ComPtr<IAudioClient>& cl
     if (!eventHandle) return false;
     const HRESULT hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED,
         AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST,
-        1000000, 0, format, nullptr);
+        200000, 0, format, nullptr);
     if (FAILED(hr) || FAILED(client->SetEventHandle(eventHandle))) return false;
     return true;
 }
