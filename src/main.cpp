@@ -17,6 +17,7 @@ constexpr int kInputMute = 1006;
 constexpr int kOutputMute = 1007;
 constexpr int kStartMonitor = 1008;
 constexpr int kStopMonitor = 1009;
+constexpr int kBufferCombo = 1010;
 
 HWND g_deviceList = nullptr;
 HWND g_inputCombo = nullptr;
@@ -27,6 +28,7 @@ HWND g_inputMute = nullptr;
 HWND g_outputMute = nullptr;
 HWND g_status = nullptr;
 HWND g_audioStatus = nullptr;
+HWND g_bufferCombo = nullptr;
 WasapiMonitor g_monitor;
 std::vector<AudioEndpoint> g_inputs;
 std::vector<AudioEndpoint> g_outputs;
@@ -148,7 +150,12 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lPa
         g_status = CreateWindowW(L"STATIC", L"Loading endpoints...", WS_CHILD | WS_VISIBLE, 24, 198, 840, 22, window, nullptr, nullptr, nullptr);
         CreateWindowW(L"BUTTON", L"Start input monitor", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 24, 222, 160, 30, window, reinterpret_cast<HMENU>(static_cast<INT_PTR>(kStartMonitor)), nullptr, nullptr);
         CreateWindowW(L"BUTTON", L"Stop", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 194, 222, 90, 30, window, reinterpret_cast<HMENU>(static_cast<INT_PTR>(kStopMonitor)), nullptr, nullptr);
-        g_audioStatus = CreateWindowW(L"STATIC", L"Audio monitor: stopped", WS_CHILD | WS_VISIBLE, 300, 226, 560, 24, window, nullptr, nullptr, nullptr);
+        CreateWindowW(L"STATIC", L"BUFFER SIZE", WS_CHILD | WS_VISIBLE, 300, 198, 150, 22, window, nullptr, nullptr, nullptr);
+        g_bufferCombo = CreateWindowW(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_VSCROLL, 300, 222, 150, 160, window, reinterpret_cast<HMENU>(static_cast<INT_PTR>(kBufferCombo)), nullptr, nullptr);
+        const struct { const wchar_t* label; LPARAM ms; } buffers[] = { { L"10 ms - Low latency", 10 }, { L"20 ms - Balanced", 20 }, { L"40 ms - Stable", 40 }, { L"80 ms - Very stable", 80 } };
+        for (const auto& item : buffers) { const LRESULT index = SendMessageW(g_bufferCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(item.label)); SendMessageW(g_bufferCombo, CB_SETITEMDATA, index, item.ms); }
+        SendMessageW(g_bufferCombo, CB_SETCURSEL, 1, 0);
+        g_audioStatus = CreateWindowW(L"STATIC", L"Audio monitor: stopped", WS_CHILD | WS_VISIBLE, 470, 226, 390, 24, window, nullptr, nullptr, nullptr);
         g_deviceList = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY, 24, 264, 840, 340, window, nullptr, nullptr, nullptr);
         SetTimer(window, 1, 250, nullptr);
         RefreshDevices();
@@ -163,7 +170,7 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lPa
             const auto* in = SelectedEndpoint(g_inputCombo, g_inputs);
             const auto* out = SelectedEndpoint(g_outputCombo, g_outputs);
             if (!in || !out) SetStatus(L"Select an active recording input and playback output first.");
-            else if (!g_monitor.Start(in->id, out->id)) SetStatus(L"Monitor is already running or starting.");
+            else { const LRESULT selected = SendMessageW(g_bufferCombo, CB_GETCURSEL, 0, 0); const unsigned int bufferMs = selected == CB_ERR ? 20u : static_cast<unsigned int>(SendMessageW(g_bufferCombo, CB_GETITEMDATA, selected, 0)); if (!g_monitor.Start(in->id, out->id, bufferMs)) SetStatus(L"Monitor is already running or starting."); else SetStatus(L"Starting WASAPI monitor with " + std::to_wstring(bufferMs) + L" ms buffer..."); }
             else SetStatus(L"Starting WASAPI monitor...");
             return 0;
         }
