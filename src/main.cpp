@@ -17,8 +17,6 @@ constexpr int kInputMute = 1006;
 constexpr int kOutputMute = 1007;
 constexpr int kStartMonitor = 1008;
 constexpr int kStopMonitor = 1009;
-constexpr int kStartMonitor = 1008;
-constexpr int kStopMonitor = 1009;
 
 HWND g_deviceList = nullptr;
 HWND g_inputCombo = nullptr;
@@ -28,8 +26,6 @@ HWND g_outputSlider = nullptr;
 HWND g_inputMute = nullptr;
 HWND g_outputMute = nullptr;
 HWND g_status = nullptr;
-HWND g_audioStatus = nullptr;
-WasapiMonitor g_monitor;
 HWND g_audioStatus = nullptr;
 WasapiMonitor g_monitor;
 std::vector<AudioEndpoint> g_inputs;
@@ -85,24 +81,17 @@ void RefreshDevices() {
     g_inputs.clear();
     g_outputs.clear();
     std::wostringstream output;
-    output << L"DS ORCA CONTROL CENTER | WINDOWS AUDIO ENDPOINTS\r
-";
-    output << L"================================================\r
-";
+    output << L"DS ORCA CONTROL CENTER | WINDOWS AUDIO ENDPOINTS\r\n";
+    output << L"================================================\r\n";
     const auto devices = EnumerateAudioEndpoints();
     for (const auto& device : devices) {
-        output << L"[" << device.flow << L"] " << device.name << L"\r
-";
-        output << L"    Status: " << device.state << L"\r
-";
-        output << L"    ID: " << device.id << L"\r
-\r
-";
+        output << L"[" << device.flow << L"] " << device.name << L"\r\n";
+        output << L"    Status: " << device.state << L"\r\n";
+        output << L"    ID: " << device.id << L"\r\n\r\n";
         if (device.flow == L"Recording" && device.state == L"Active") g_inputs.push_back(device);
         if (device.flow == L"Playback" && device.state == L"Active") g_outputs.push_back(device);
     }
-    if (devices.empty()) output << L"No audio endpoints found. Check Windows Audio service.\r
-";
+    if (devices.empty()) output << L"No audio endpoints found. Check Windows Audio service.\r\n";
     SetWindowTextW(g_deviceList, output.str().c_str());
     PopulateEndpointCombo(g_inputCombo, g_inputs);
     PopulateEndpointCombo(g_outputCombo, g_outputs);
@@ -170,15 +159,6 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lPa
         case kRefreshButton: RefreshDevices(); return 0;
         case kInputMute: ToggleMute(true); return 0;
         case kOutputMute: ToggleMute(false); return 0;
-        case kStartMonitor: {
-            const auto* in = SelectedEndpoint(g_inputCombo, g_inputs);
-            const auto* out = SelectedEndpoint(g_outputCombo, g_outputs);
-            if (!in || !out) SetStatus(L"Select an active recording input and playback output first.");
-            else if (!g_monitor.Start(in->id, out->id)) SetStatus(L"Monitor is already running or starting.");
-            else SetStatus(L"Starting WASAPI monitor...");
-            return 0;
-        }
-        case kStopMonitor: g_monitor.Stop(); SetStatus(L"Audio monitor stopped."); return 0;
         case kStartMonitor: {
             const auto* in = SelectedEndpoint(g_inputCombo, g_inputs);
             const auto* out = SelectedEndpoint(g_outputCombo, g_outputs);
