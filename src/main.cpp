@@ -1,4 +1,5 @@
 #include "AudioDevices.h"
+#include "WasapiMonitor.h"
 #include <windows.h>
 #include <commctrl.h>
 #include <objbase.h>
@@ -13,7 +14,7 @@ constexpr int kOutputCombo = 1003;
 constexpr int kInputSlider = 1004;
 constexpr int kOutputSlider = 1005;
 constexpr int kInputMute = 1006;
-constexpr int kOutputMute = 1007;
+constexpr int kOutputMute = 1007;\nconstexpr int kStartMonitor = 1008;\nconstexpr int kStopMonitor = 1009;
 
 HWND g_deviceList = nullptr;
 HWND g_inputCombo = nullptr;
@@ -22,7 +23,7 @@ HWND g_inputSlider = nullptr;
 HWND g_outputSlider = nullptr;
 HWND g_inputMute = nullptr;
 HWND g_outputMute = nullptr;
-HWND g_status = nullptr;
+HWND g_status = nullptr;\nHWND g_audioStatus = nullptr;\nWasapiMonitor g_monitor;
 std::vector<AudioEndpoint> g_inputs;
 std::vector<AudioEndpoint> g_outputs;
 
@@ -149,7 +150,7 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lPa
         switch (LOWORD(wParam)) {
         case kRefreshButton: RefreshDevices(); return 0;
         case kInputMute: ToggleMute(true); return 0;
-        case kOutputMute: ToggleMute(false); return 0;
+        case kOutputMute: ToggleMute(false); return 0;\n        case kStartMonitor: {\n            const auto* in = SelectedEndpoint(g_inputCombo, g_inputs);\n            const auto* out = SelectedEndpoint(g_outputCombo, g_outputs);\n            if (!in || !out) SetStatus(L"Select an active recording input and playback output first.");\n            else if (!g_monitor.Start(in->id, out->id)) SetStatus(L"Monitor is already running or starting.");\n            else SetStatus(L"Starting WASAPI monitor...");\n            return 0;\n        }\n        case kStopMonitor: g_monitor.Stop(); SetStatus(L"Audio monitor stopped."); return 0;
         case kInputCombo:
             if (HIWORD(wParam) == CBN_SELCHANGE) UpdateEndpointControls(true);
             return 0;
