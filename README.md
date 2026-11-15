@@ -8,36 +8,29 @@ The original DS ORCA Control Center project source is licensed under GNU GPL ver
 
 The Steinberg ASIO SDK is a separate third-party component and is not bundled here. The project plans to use the SDK's GPLv3 alternative; preserve all SDK-specific notices and check file-level licensing before integrating SDK files. See [Third-party notices](docs/THIRD_PARTY_NOTICES.md).
 
-## Current status — foundation 0.1.0
+## Current status — 0.2.0
 
+Implemented and built:
 - Native Windows desktop application.
-- Enumerates Windows playback and recording endpoints using Windows Core Audio.
-- Displays endpoint names, IDs, direction and state.
-- GitHub Actions builds the x64 Release executable automatically.
+- Windows Core Audio playback and recording endpoint enumeration.
+- Active input and output endpoint selection.
+- Input endpoint master volume and mute controls.
+- Playback endpoint master volume and mute controls.
+- Automated Windows x64 Release build.
 
-This is an engineering foundation, not yet a finished audio mixer or ASIO driver. The current executable does not provide audio processing, ASIO registration, or a virtual audio endpoint.
+The volume and mute controls operate on Windows Core Audio endpoint controls. They do not yet control undocumented DSP inside the DS ORCA hardware and do not constitute a multi-bus software mixer.
 
-## Build without installing Visual Studio locally
+**Not implemented yet:** WASAPI audio streaming/mixing, ASIO driver, virtual audio endpoint, DAW integration and installer.
 
-1. Open the Actions tab in this repository.
-2. Select Windows x64 build.
-3. Select Run workflow, or push a commit to main.
-4. When successful, download the artifact named DS-ORCA-Control-Center-Windows-x64.
+## Download the latest build
 
-The GitHub-hosted Windows runner provides the MSVC build environment.
-
-## Planned modules
-
-1. WASAPI capture and playback engine.
-2. Audio routing and software mixer.
-3. Windows loopback capture.
-4. ASIO x64 driver backed by the Windows audio engine.
-5. Optional virtual audio endpoint driver.
-6. Presets, device dashboard and installer.
+1. Open the [Windows x64 build workflow](https://github.com/Stev303/DS-ORCA-Control-Center/actions/workflows/windows-build.yml).
+2. Open the latest successful run.
+3. Download the artifact named `DS-ORCA-Control-Center-Windows-x64`.
 
 ## Hardware compatibility
 
-The application initially uses the Microsoft USB Audio class driver already installed by Windows. It must not replace the DS ORCA device driver.
+The application uses the Microsoft USB Audio class driver already installed by Windows. It must not replace the DS ORCA device driver.
 
 Known DS ORCA USB identity: VID 320C, PID 1B0A. Match by USB identity and endpoint information rather than assuming every device named HD USB Audio Device is DS ORCA.
 
