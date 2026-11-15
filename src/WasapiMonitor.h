@@ -7,11 +7,11 @@ class WasapiMonitor {
 public:
     WasapiMonitor() = default;
     ~WasapiMonitor();
-    bool Start(const std::wstring& captureId, const std::wstring& renderId);
+    bool Start(const std::wstring& captureId, const std::wstring& renderId, unsigned int bufferMs);
     void Stop();
     int Status() const noexcept { return status_.load(); } // 0 stopped, 1 starting, 2 running, 3 error
 private:
-    void Run(std::wstring captureId, std::wstring renderId);
+    void Run(std::wstring captureId, std::wstring renderId, unsigned int bufferMs);
     std::atomic<bool> stop_{false};
     std::atomic<int> status_{0};
     std::thread worker_;
