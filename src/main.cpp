@@ -1,5 +1,6 @@
 #include "AudioDevices.h"
 #include <windows.h>
+#include <objbase.h>
 #include <string>
 #include <sstream>
 namespace {
@@ -25,7 +26,7 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lPa
     switch (message) {
     case WM_CREATE:
         CreateWindowW(L"STATIC", L"DS ORCA | CONTROL CENTER", WS_CHILD | WS_VISIBLE, 24, 18, 620, 34, window, nullptr, nullptr, nullptr);
-        CreateWindowW(L"BUTTON", L"Refresh audio devices", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 24, 62, 190, 34, window, reinterpret_cast<HMENU>(kRefreshButton), nullptr, nullptr);
+        CreateWindowW(L"BUTTON", L"Refresh audio devices", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 24, 62, 190, 34, window, reinterpret_cast<HMENU>(static_cast<INT_PTR>(kRefreshButton)), nullptr, nullptr);
         g_deviceList = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"Loading audio devices...", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY, 24, 112, 790, 420, window, nullptr, nullptr, nullptr);
         RefreshDevices();
         return 0;
