@@ -2,15 +2,15 @@
 
 ## Steinberg ASIO SDK
 
-The project intends to integrate the Steinberg ASIO SDK under its GPL version 3 alternative license.
+This project intends to integrate the Steinberg ASIO SDK using its GPL version 3 open-source licensing option.
 
-The ASIO SDK is **not bundled in this repository**. Obtain the SDK from Steinberg's official developer portal:
-https://www.steinberg.net/developers/
+- Official SDK download: https://www.steinberg.net/asiosdk
+- Steinberg developer portal: https://www.steinberg.net/developers/
+- Steinberg ASIO licensing announcement: https://ocl-steinberg-live.steinberg.net/_storage/asset/808575/storage/master/Press%20Release%20-%202025-10-15%20-%20OBS%20Partnership-%20EN.pdf
 
-The upstream SDK repository documents dual licensing: the Steinberg ASIO License or GPL version 3. The SDK's top-level `LICENSE.txt` applies only to files that reference it; other SDK files may carry their own embedded license notices. Preserve every upstream notice and verify the applicable license for each SDK file before including or modifying it.
+The SDK is not bundled in this repository. When it is added for development, keep it separate from original project source and preserve all upstream copyright and license notices. The SDK's top-level license applies only to files referencing it; other files may contain their own embedded license terms. Verify the license of each SDK file before modifying, compiling or redistributing it.
 
-Upstream SDK source and license information:
-https://github.com/audiosdk/asio
+The project has selected GPLv3. This means the complete combined distribution must comply with GPLv3 requirements when Steinberg SDK files under GPLv3 are incorporated. Do not switch to a proprietary or closed-source distribution model without reviewing licensing again.
 
 ## Project license
 
