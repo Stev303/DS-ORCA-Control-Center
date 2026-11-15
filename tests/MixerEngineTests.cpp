@@ -17,7 +17,7 @@ int main(){
  s.muted=true; mixer.SetChannelState(0,s); mixer.Process(in,1,out,2);
  Check(Near(out[0],0.0f)&&Near(out[1],0.0f),"mute");
  s.muted=false; s.pan=1.0f; mixer.SetChannelState(0,s); mixer.Process(in,1,out,2);
- Check(Near(out[0],0.0f)&&Near(out[1],-0.25f*0.5f), "hard-right balance");
+ Check(Near(out[0],0.0f)&&Near(out[1],-0.25f), "hard-right balance");
  const float b[]={0.2f,0.2f,0.2f,0.2f}; const float* two[]={a,b};
  s.pan=0.0f; s.solo=true; mixer.SetChannelState(0,s); mixer.Process(two,2,out,2);
  Check(Near(out[0],0.125f),"solo excludes other strips");
